@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="description" content="Offline-first exercise tracker with GPS, streaks, and calorie calculation." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FitTrack" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <title>FitTrack</title>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="logo">FitTrack<span>EXERCISE LOGGER</span></div>
+    <div id="header-weight" style="font-size:0.7rem;color:var(--text2);letter-spacing:0.1em;"></div>
+  </header>
+
+  <!-- ── Main Content ───────────────────────────────────────── -->
+  <main>
+
+    <!-- ── PAGE: Dashboard ──────────────────────────────────── -->
+    <section class="page active" id="page-dashboard">
+      <p class="page-title">Dashboard</p>
+      <p class="page-subtitle">YOUR FITNESS OVERVIEW</p>
+
+      <!-- Streak Banner -->
+      <div class="streak-banner">
+        <div class="streak-fire">🔥</div>
+        <div class="streak-info">
+          <div class="streak-num" id="dash-streak">0</div>
+          <div class="streak-label">DAY STREAK</div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="card">
+          <div class="card-label">Total Sessions</div>
+          <div class="card-value secondary" id="dash-total">0</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Kcal Burned</div>
+          <div class="card-value" id="dash-kcal">0</div>
+        </div>
+      </div>
+
+      <!-- Week Activity Bar -->
+      <div class="section-header">This Week</div>
+      <div class="week-bar" id="week-bar"></div>
+
+      <!-- Recent Activity -->
+      <div class="section-header">Recent Activity</div>
+      <div class="activity-list" id="activity-list">
+        <div class="empty-state">
+          <div class="empty-icon">🏃</div>
+          <p>No activities yet.<br/>Log your first workout!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PAGE: Log Activity ────────────────────────────────── -->
+    <section class="page" id="page-log">
+      <p class="page-title">Log Activity</p>
+      <p class="page-subtitle">RECORD YOUR WORKOUT</p>
+
+      <!-- Exercise Type -->
+      <div class="form-group">
+        <label class="form-label" for="exercise-type">Exercise Type</label>
+        <select class="form-select" id="exercise-type">
+          <option value="Running">🏃 Running</option>
+          <option value="Pushups">💪 Pushups</option>
+          <option value="Situps">🧘 Situps</option>
+          <option value="Planks">🏋️ Planks</option>
+        </select>
+      </div>
+
+      <!-- Duration -->
+      <div class="form-group">
+        <label class="form-label" for="exercise-duration">Duration</label>
+        <div class="input-with-unit">
+          <input class="form-input" type="number" id="exercise-duration"
+            placeholder="30" min="1" max="600" />
+          <span class="input-unit">MIN</span>
+        </div>
+      </div>
+
+      <!-- GPS Card (Running only) -->
+      <div class="gps-card" id="gps-card">
+        <div class="gps-status">
+          <div class="gps-dot" id="gps-dot"></div>
+          <span id="gps-status-text">GPS ready — press Start Track to begin</span>
+        </div>
+        <button class="btn btn-track" id="btn-track" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16"/>
+          </svg>
+          Start Track
+        </button>
+        <div class="gps-grid">
+          <div>
+            <div class="gps-stat-val" id="gps-dist">0.00</div>
+            <div class="gps-stat-label">km</div>
+          </div>
+          <div>
+            <div class="gps-stat-val" id="gps-points">0</div>
+            <div class="gps-stat-label">Points</div>
+          </div>
+          <div>
+            <div class="gps-stat-val" id="gps-time">0:00</div>
+            <div class="gps-stat-label">Elapsed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5-Minute Running Log (Running only) -->
+      <div class="fivemin-section" id="fivemin-section">
+        <div class="fivemin-header">
+          ⏱️ 5-MINUTE CHECK-IN
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="fivemin-log">
+            Sensations &amp; Breathing at ~5 min mark
+          </label>
+          <textarea class="form-textarea" id="fivemin-log"
+            placeholder="e.g. Breathing steady, legs feel warm, slight tightness in chest by minute 4, found rhythm at 5:30…"></textarea>
+        </div>
+      </div>
+
+      <!-- Calorie Preview -->
+      <div class="calorie-preview">
+        <div>
+          <div class="calorie-preview-label">Estimated Calories</div>
+          <div style="font-size:0.7rem;color:var(--text2);margin-top:2px;">MET × Weight × Duration</div>
+        </div>
+        <div>
+          <div class="calorie-preview-val" id="calorie-preview">—</div>
+          <div style="font-size:0.6rem;color:var(--text2);text-align:right;letter-spacing:0.1em">KCAL</div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label class="form-label" for="exercise-notes">Notes (optional)</label>
+        <textarea class="form-textarea" id="exercise-notes"
+          placeholder="How did it feel? Any personal records?"></textarea>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn btn-primary" id="btn-log" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+          <path d="M5 12l5 5L20 7"/>
+        </svg>
+        Save Activity
+      </button>
+    </section>
+
+    <!-- ── PAGE: History ─────────────────────────────────────── -->
+    <section class="page" id="page-history">
+      <p class="page-title">History</p>
+      <p class="page-subtitle">ALL LOGGED ACTIVITIES</p>
+      <div id="history-filters" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:0.7rem;" data-filter="All">All</button>
+        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:0.7rem;" data-filter="Running">Running</button>
+        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:0.7rem;" data-filter="Pushups">Pushups</button>
+        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:0.7rem;" data-filter="Situps">Situps</button>
+        <button class="btn btn-secondary" style="width:auto;padding:6px 12px;font-size:0.7rem;" data-filter="Planks">Planks</button>
+      </div>
+      <div class="activity-list" id="history-list">
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>No activities logged yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PAGE: Settings ───────────────────────────────────── -->
+    <section class="page" id="page-settings">
+      <p class="page-title">Settings</p>
+      <p class="page-subtitle">PERSONAL PROFILE</p>
+
+      <div class="settings-block">
+        <h3>Body Weight</h3>
+        <div class="weight-display" id="settings-weight-display">
+          — <small>kg</small>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text2);margin:6px 0 14px;">
+          Used for accurate calorie calculation (MET formula).
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="weight-input">Weight (kg)</label>
+          <div class="input-with-unit">
+            <input class="form-input" type="number" id="weight-input"
+              placeholder="70" min="30" max="300" step="0.1" />
+            <span class="input-unit">KG</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-save-weight" type="button">
+          Save Weight
+        </button>
+      </div>
+
+      <div class="settings-block">
+        <h3>MET Reference</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+          <thead>
+            <tr style="color:var(--text2);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;">
+              <th style="text-align:left;padding:4px 0;border-bottom:1px solid var(--border);">Exercise</th>
+              <th style="text-align:right;padding:4px 0;border-bottom:1px solid var(--border);">MET Value</th>
+            </tr>
+          </thead>
+          <tbody id="met-table"></tbody>
+        </table>
+      </div>
+
+      <div class="settings-block">
+        <h3>Data Management</h3>
+        <p style="font-size:0.72rem;color:var(--text2);margin-bottom:14px;">
+          All data is stored locally on this device.
+        </p>
+        <button class="btn btn-danger" id="btn-clear-data" type="button">
+          Clear All Data
+        </button>
+      </div>
+
+      <div style="text-align:center;padding:20px 0;color:var(--text2);font-size:0.65rem;letter-spacing:0.1em;">
+        FITTRACK v1.0 · OFFLINE-FIRST PWA<br/>
+        All data stored on-device via localStorage
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Bottom Navigation ───────────────────────────────────── -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </button>
+    <button class="nav-btn" data-page="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/>
+      </svg>
+      Log
+    </button>
+    <button class="nav-btn" data-page="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/>
+      </svg>
+      History
+    </button>
+    <button class="nav-btn" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+      Settings
+    </button>
+  </nav>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
